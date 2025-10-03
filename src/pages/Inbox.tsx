@@ -5,11 +5,12 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Search, Plus, LogOut, Mail, Inbox as InboxIcon, Star, Archive } from "lucide-react";
+import { Search, Plus, LogOut, Mail, Inbox as InboxIcon, Star, Archive, Edit } from "lucide-react";
 import { AccountsList } from "@/components/mail/AccountsList";
 import { MessageList } from "@/components/mail/MessageList";
 import { MessageDetail } from "@/components/mail/MessageDetail";
 import { AddAccountDialog } from "@/components/mail/AddAccountDialog";
+import { ComposeDialog } from "@/components/mail/ComposeDialog";
 
 const Inbox = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Inbox = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -67,14 +69,23 @@ const Inbox = () => {
             </div>
             <span className="font-semibold text-lg">Unified Mail</span>
           </div>
-          <Button
-            onClick={() => setShowAddAccount(true)}
-            className="w-full"
-            size="sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Account
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowCompose(true)}
+              className="flex-1"
+              size="sm"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Compose
+            </Button>
+            <Button
+              onClick={() => setShowAddAccount(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -140,6 +151,11 @@ const Inbox = () => {
       <AddAccountDialog
         open={showAddAccount}
         onOpenChange={setShowAddAccount}
+      />
+
+      <ComposeDialog
+        open={showCompose}
+        onOpenChange={setShowCompose}
       />
     </div>
   );

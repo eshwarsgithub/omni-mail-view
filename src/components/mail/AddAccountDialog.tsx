@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Loader2 } from "lucide-react";
+import { initiateOAuth } from "@/lib/oauth";
 
 type AddAccountDialogProps = {
   open: boolean;
@@ -26,28 +27,39 @@ export const AddAccountDialog = ({
   const handleConnectProvider = async (provider: "gmail" | "outlook") => {
     setConnecting(provider);
     try {
-      // For MVP, we'll simulate the connection
-      // In production, this would trigger OAuth flow via edge function
-      toast.info("OAuth integration coming soon! For now, adding demo account...");
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Check if OAuth is configured
+      const clientId = provider === "gmail"
+        ? import.meta.env.VITE_GMAIL_CLIENT_ID
+        : import.meta.env.VITE_OUTLOOK_CLIENT_ID;
 
-      const { error } = await supabase.from("mail_accounts").insert({
-        user_id: user.id,
-        email: `demo@${provider}.com`,
-        provider: provider,
-        auth_type: "oauth",
-        display_name: `Demo ${provider.charAt(0).toUpperCase() + provider.slice(1)} Account`,
-      });
+      if (!clientId) {
+        // Fallback to demo account if OAuth not configured
+        toast.info("OAuth not configured. Adding demo account...");
 
-      if (error) throw error;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
 
-      toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} account connected!`);
-      onOpenChange(false);
+        const { error } = await supabase.from("mail_accounts").insert({
+          user_id: user.id,
+          email: `demo@${provider}.com`,
+          provider: provider,
+          auth_type: "oauth",
+          display_name: `Demo ${provider.charAt(0).toUpperCase() + provider.slice(1)} Account`,
+        });
+
+        if (error) throw error;
+
+        toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} demo account connected!`);
+        onOpenChange(false);
+        setConnecting(null);
+      } else {
+        // Initiate real OAuth flow
+        toast.info("Redirecting to OAuth...");
+        initiateOAuth(provider);
+        // Don't reset connecting state - page will redirect
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to connect account");
-    } finally {
       setConnecting(null);
     }
   };

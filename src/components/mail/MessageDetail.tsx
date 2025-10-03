@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ComposeDialog } from "./ComposeDialog";
 
 type Message = {
   id: string;
@@ -32,6 +33,7 @@ type Message = {
   is_read: boolean;
   is_starred: boolean;
   has_attachments: boolean;
+  labels: string[] | null;
 };
 
 type MessageDetailProps = {
@@ -41,6 +43,8 @@ type MessageDetailProps = {
 export const MessageDetail = ({ messageId }: MessageDetailProps) => {
   const [message, setMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showReply, setShowReply] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ messageId: string; to: string; subject: string } | undefined>();
 
   useEffect(() => {
     if (messageId) {
@@ -92,6 +96,48 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
     }
   };
 
+  const handleReply = () => {
+    if (!message) return;
+    setReplyTo({
+      messageId: message.id,
+      to: message.from_address,
+      subject: message.subject,
+    });
+    setShowReply(true);
+  };
+
+  const handleArchive = async () => {
+    if (!message) return;
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ labels: [...(message.labels || []), "ARCHIVED"] })
+        .eq("id", message.id);
+
+      if (error) throw error;
+      toast.success("Message archived");
+    } catch (error: any) {
+      toast.error("Failed to archive message");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!message) return;
+    if (!confirm("Are you sure you want to delete this message?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("id", message.id);
+
+      if (error) throw error;
+      toast.success("Message deleted");
+    } catch (error: any) {
+      toast.error("Failed to delete message");
+    }
+  };
+
   if (!messageId) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -116,20 +162,20 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
     <div className="flex flex-col h-full">
       {/* Header Actions */}
       <div className="p-4 border-b flex items-center gap-2">
-        <Button variant="ghost" size="sm" title="Reply">
+        <Button variant="ghost" size="sm" title="Reply" onClick={handleReply}>
           <Reply className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" title="Reply All">
+        <Button variant="ghost" size="sm" title="Reply All" onClick={handleReply}>
           <ReplyAll className="w-4 h-4" />
         </Button>
         <Button variant="ghost" size="sm" title="Forward">
           <Forward className="w-4 h-4" />
         </Button>
         <Separator orientation="vertical" className="h-6" />
-        <Button variant="ghost" size="sm" title="Archive">
+        <Button variant="ghost" size="sm" title="Archive" onClick={handleArchive}>
           <Archive className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" title="Delete">
+        <Button variant="ghost" size="sm" title="Delete" onClick={handleDelete}>
           <Trash2 className="w-4 h-4" />
         </Button>
         <Button
@@ -150,6 +196,12 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
           <MoreVertical className="w-4 h-4" />
         </Button>
       </div>
+
+      <ComposeDialog
+        open={showReply}
+        onOpenChange={setShowReply}
+        replyTo={replyTo}
+      />
 
       {/* Message Content */}
       <ScrollArea className="flex-1">

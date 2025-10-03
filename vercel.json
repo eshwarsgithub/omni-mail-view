@@ -1,0 +1,19 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@supabase-url",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "@supabase-key",
+    "VITE_GMAIL_CLIENT_ID": "@gmail-client-id",
+    "VITE_OUTLOOK_CLIENT_ID": "@outlook-client-id"
+  }
+}
