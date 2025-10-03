@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ComposeDialog } from "./ComposeDialog";
 
 type Message = {
   id: string;
@@ -41,6 +42,8 @@ type MessageDetailProps = {
 export const MessageDetail = ({ messageId }: MessageDetailProps) => {
   const [message, setMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  const [replyInfo, setReplyInfo] = useState<any>(null);
 
   useEffect(() => {
     if (messageId) {
@@ -92,6 +95,16 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
     }
   };
 
+  const handleReply = () => {
+    if (!message) return;
+    setReplyInfo({
+      messageId: message.id,
+      subject: message.subject,
+      from: message.from_address
+    });
+    setShowCompose(true);
+  };
+
   if (!messageId) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -113,18 +126,19 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header Actions */}
-      <div className="p-4 border-b flex items-center gap-2">
-        <Button variant="ghost" size="sm" title="Reply">
-          <Reply className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" title="Reply All">
-          <ReplyAll className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" title="Forward">
-          <Forward className="w-4 h-4" />
-        </Button>
+    <>
+      <div className="flex flex-col h-full">
+        {/* Header Actions */}
+        <div className="p-4 border-b flex items-center gap-2">
+          <Button variant="ghost" size="sm" title="Reply" onClick={handleReply}>
+            <Reply className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="sm" title="Reply All" onClick={handleReply}>
+            <ReplyAll className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="sm" title="Forward">
+            <Forward className="w-4 h-4" />
+          </Button>
         <Separator orientation="vertical" className="h-6" />
         <Button variant="ghost" size="sm" title="Archive">
           <Archive className="w-4 h-4" />
@@ -223,5 +237,12 @@ export const MessageDetail = ({ messageId }: MessageDetailProps) => {
         </div>
       </ScrollArea>
     </div>
+
+    <ComposeDialog
+      open={showCompose}
+      onOpenChange={setShowCompose}
+      replyTo={replyInfo}
+    />
+  </>
   );
 };

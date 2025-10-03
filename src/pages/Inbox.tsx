@@ -5,11 +5,12 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Search, Plus, LogOut, Mail, Inbox as InboxIcon, Star, Archive } from "lucide-react";
+import { Search, Plus, LogOut, Mail, Inbox as InboxIcon, Star, Archive, Settings as SettingsIcon, PenSquare } from "lucide-react";
 import { AccountsList } from "@/components/mail/AccountsList";
 import { MessageList } from "@/components/mail/MessageList";
 import { MessageDetail } from "@/components/mail/MessageDetail";
 import { AddAccountDialog } from "@/components/mail/AddAccountDialog";
+import { ComposeDialog } from "@/components/mail/ComposeDialog";
 
 const Inbox = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Inbox = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -60,16 +62,24 @@ const Inbox = () => {
     <div className="flex h-screen bg-background">
       {/* Left Sidebar */}
       <div className="w-64 border-r bg-card flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="p-4 border-b space-y-3">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Mail className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-lg">Unified Mail</span>
           </div>
           <Button
+            onClick={() => setShowCompose(true)}
+            className="w-full"
+          >
+            <PenSquare className="w-4 h-4 mr-2" />
+            Compose
+          </Button>
+          <Button
             onClick={() => setShowAddAccount(true)}
             className="w-full"
+            variant="outline"
             size="sm"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -99,7 +109,15 @@ const Inbox = () => {
           </div>
         </div>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate('/settings')}
+          >
+            <SettingsIcon className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive hover:text-destructive"
@@ -140,6 +158,11 @@ const Inbox = () => {
       <AddAccountDialog
         open={showAddAccount}
         onOpenChange={setShowAddAccount}
+      />
+
+      <ComposeDialog
+        open={showCompose}
+        onOpenChange={setShowCompose}
       />
     </div>
   );
